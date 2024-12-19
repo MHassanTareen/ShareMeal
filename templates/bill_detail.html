@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Bill Details</h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Category: {{ bill.category.name }}</h5>
+            <p class="card-text">
+                <strong>Bill ID:</strong> {{ bill.uuid }}<br>
+                <strong>Billed Amount:</strong> {{ bill.billed_amount }}<br>
+                <strong>Per Head Amount:</strong> {{ bill.per_head_amount }}<br>
+                <strong>Paid By:</strong> {{ bill.paidby.name }}<br>
+                <strong>Note:</strong> {{ bill.note|default:"No notes available" }}<br>
+                <strong>Date of Bill:</strong> {{ bill.dateofBill }}<br>
+                <strong>Entry Date:</strong> {{ bill.entrydate }}
+            </p>
+        </div>
+    </div>
+
+    <h2>Users Involved</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Total Balance</th>
+                <th>Contribution</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users_involved %}
+            <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.total_balance }}</td>
+                <td>
+                    {% if user == bill.paidby %}
+                        -{{ bill.billed_amount|floatformat:2 }} + {{ bill.per_head_amount|floatformat:2 }} = 
+                        {{ bill.billed_amount|subtract:bill.per_head_amount|floatformat:2 }}
+                    {% else %}
+                        {{ bill.per_head_amount|floatformat:2 }}
+                    {% endif %}
+
+                    {% comment %} {% if user == bill.paidby %}
+                        -{{ bill.billed_amount|floatformat:2}} + {{ bill.per_head_amount|floatformat:2 }} = 
+                        {{ (bill.billed_amount - bill.per_head_amount)|floatformat:2 }}
+                    {% else %}
+                        {{ bill.per_head_amount|floatformat:2 }}
+                    {% endif %} {% endcomment %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'bills-list' %}" class="btn btn-primary">Back to Bills</a>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Create New Bill</h1>
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Render the "name" field with checkboxes -->
+        <div class="mb-3">
+            <label for="id_name" class="form-label">{{ form.name.label }}</label>
+            <div class="fieldWrapper">
+                {{ form.name.errors }}
+                {% for user in form.name.field.queryset %}
+                    <div class="form-check form-switch form-check-inline">
+                        <input class="form-check-input" 
+                               type="checkbox" 
+                               name="name" 
+                               id="user_{{ user.id }}" 
+                               value="{{ user.id }}" 
+                               {% if user in form.instance.name.all %}checked{% endif %}>
+                        <label class="form-check-label" for="user_{{ user.id }}">{{ user }}</label><br>
+                    </div>
+                {% endfor %}
+            </div>
+            <!-- Add New User Button -->
+            <a href="{% url 'user-create' %}?next={{ request.path }}" class="btn btn-primary mt-3">Add New User</a>
+
+        </div>
+
+        <!-- Render other fields -->
+        <div class="mb-3">
+            {{ form.category.label_tag }} {{ form.category }}
+        </div>
+        <div class="mb-3">
+            {{ form.paidby.label_tag }} {{ form.paidby }}
+        </div>
+        <div class="mb-3">
+            {{ form.billed_amount.label_tag }} {{ form.billed_amount }}
+        </div>
+        <div class="mb-3">
+            {{ form.note.label_tag }} {{ form.note }}
+        </div>
+        <div class="mb-3">
+            {{ form.dateofBill.label_tag }} {{ form.dateofBill }}
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-success">Save Bill</button>
+    </form>
+</div>
+{% endblock %}
