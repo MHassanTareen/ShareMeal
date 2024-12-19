@@ -56,6 +56,56 @@ class bill(models.Model):
         """Run the entire bill processing logic."""
         self.calculate_per_head()
         self.update_balances()
+        
+class Contribution(models.Model):
+    user = models.ForeignKey(user2cal,on_delete=models.DO_NOTHING,related_name="user_make_contribution")
+    amount = models.DecimalField(max_digits=100000,decimal_places=2,blank=True,null=True)
+    ToBill = models.ForeignKey(bill , on_delete=models.DO_NOTHING,related_name="make_contibuation_to_bill")
+    entrydate = models.DateTimeField(auto_now_add=True,editable=False)
+
+    def __str__(self):
+        return f"{self.user} make contribution  - : {self.amount}"
+    
+    def update_balance(self):
+            """Update the balance of the user who made the contribution."""
+            if self.amount:
+                user = self.user
+                user.total_balance -= Decimal(self.amount)
+                user.save()
+                return f"{user} balance updated, new balance: {user.total_balance}"
+            else:
+                raise ValueError("Contribution amount must be specified.")
+
+
+class Recived(models.Model):
+    PayedBy = models.ForeignKey(user2cal,on_delete=models.DO_NOTHING,related_name="pay_bill_to_him")
+    RecivedBy = models.ForeignKey(user2cal,on_delete=models.DO_NOTHING,related_name="recided_bill_by")
+    amount = models.DecimalField(max_digits=100000,decimal_places=2,blank=True,null=True)
+    ToBill = models.ForeignKey(bill,on_delete=models.DO_NOTHING,blank=True, null=True,related_name="pay_back_to_bill")
+    entrydate = models.DateTimeField(auto_now_add=True,editable=False)
+
+    def __str__(self):
+        return f"Payed by {self.PayedBy} - Recived by {self.RecivedBy} : {self.amount}"
+    
+    def update_balance(self):
+        """Update the balance of the user who received the payment and the user who paid."""
+        if self.amount:
+            # Update the balance for the user who paid the amount
+            payer = self.PayedBy
+            payer.total_balance -= Decimal(self.amount)
+            payer.save()
+
+            # Update the balance for the user who received the payment
+            receiver = self.RecivedBy
+            receiver.total_balance += Decimal(self.amount)
+            receiver.save()
+
+            return (
+                f"{payer} balance updated, new balance: {payer.total_balance}, "
+                f"{receiver} balance updated, new balance: {receiver.total_balance}"
+            )
+        else:
+            raise ValueError("Amount must be specified for the payment received.")
 
 class Expense(models.Model):
     friend = models.ManyToManyField(user2cal, related_name='expenses')
